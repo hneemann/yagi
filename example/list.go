@@ -3,7 +3,9 @@
 
 package main
 
-type ListInt64 struct{ items []int64 }
+type ListInt64 struct {
+	items []int64
+}
 
 func (l ListInt64) Items() []int64 {
 	return l.items
@@ -17,7 +19,9 @@ func (l *ListInt64) len() int {
 	return len(l.items)
 }
 
-type ListInt32 struct{ items []int32 }
+type ListInt32 struct {
+	items []int32
+}
 
 func (l ListInt32) Items() []int32 {
 	return l.items

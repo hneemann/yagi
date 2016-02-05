@@ -1,18 +1,18 @@
 package tem
 
 //generic
-type T int
+type ITEM int
 
 // struct to store the elements
 type List struct {
-	items []T
+	items []ITEM
 }
 
-func (l List) Items() []T {
+func (l List) Items() []ITEM {
 	return l.items
 }
 
-func (l *List) Add(item T) {
+func (l *List) Add(item ITEM) {
 	l.items = append(l.items, item)
 }
 
