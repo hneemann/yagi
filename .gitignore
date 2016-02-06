@@ -1,3 +1,5 @@
 cmd/yagi/yagi
 cover.out
 example/example
+example/container/container
+example/mmap/mmap

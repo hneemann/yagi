@@ -84,6 +84,8 @@ func (g *Generify) Do(packageName string, w io.Writer) error {
 		return fmt.Errorf("there are %d generic types but %d concrete types", len(g.genTypes), len(g.concreteTypes.Instance[0]))
 	}
 
+	removeCommentsFrom(decls)
+
 	decls = splitDeclsToUngroupedDecls(decls)
 
 	g.genericDecls = g.inspectAllDeclsForDependencies(decls)
@@ -177,12 +179,43 @@ func findGenerics(file *ast.File) ([]string, []ast.Decl) {
 	return genTypes, newDecls
 }
 
+func removeCommentsFrom(decls []ast.Decl) {
+	for _, decl := range decls {
+		ast.Inspect(decl, func(n ast.Node) bool {
+			switch d := n.(type) {
+			case *ast.GenDecl:
+				d.Doc = nil
+				for _, spec := range d.Specs {
+					switch s := spec.(type) {
+					case *ast.ImportSpec:
+						s.Doc = nil
+						s.Comment = nil
+					case *ast.ValueSpec:
+						s.Doc = nil
+						s.Comment = nil
+					case *ast.TypeSpec:
+						s.Doc = nil
+						s.Comment = nil
+					}
+				}
+			case *ast.FuncDecl:
+				d.Doc = nil
+			case *ast.StructType:
+				for _, field := range d.Fields.List {
+					field.Doc = nil
+					field.Comment = nil
+				}
+			}
+			return true
+		})
+	}
+}
+
 func splitDeclsToUngroupedDecls(decls []ast.Decl) []ast.Decl {
 	newDecls := []ast.Decl{}
 	for _, decl := range decls {
 		copyDecl := true
 		if genDecl, ok := decl.(*ast.GenDecl); ok {
-			genDecl.Doc = nil
 			if len(genDecl.Specs) > 1 {
 				copyDecl = false
 				for _, spec := range genDecl.Specs {
