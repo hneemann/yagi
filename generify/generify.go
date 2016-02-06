@@ -1,3 +1,4 @@
+// Package generify holds the code to parse the ast of the given template
 package generify
 
 import (

@@ -1,3 +1,4 @@
+// Package concrete parses and holds the concrete types to create declarations for
 package concrete
 
 import (

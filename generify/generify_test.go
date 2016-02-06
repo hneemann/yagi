@@ -6,6 +6,7 @@ import (
 	"go/parser"
 	"go/printer"
 	"go/token"
+	"strings"
 	"testing"
 
 	"github.com/hneemann/yagi/concrete"
@@ -29,33 +30,29 @@ func getSource(t *testing.T, n ast.Node) string {
 }
 
 func TestSplitDeclsToUngroupedDecls1(t *testing.T) {
-	f := getFile(t, `package a
+	f := getFile(t, `package test
 type (
 	a int
 	b int
-)		
-`)
+)`)
 	decls := splitDeclsToUngroupedDecls(f.Decls)
-	assert.Equal(t, `package a
-
-type a int
-type b int
-`, getSource(t, &ast.File{Name: &ast.Ident{Name: "a"}, Decls: decls}))
+	s := getSource(t, &ast.File{Name: &ast.Ident{Name: "a"}, Decls: decls})
+	assert.Equal(t, 1, strings.Count(s, "package a\n"))
+	assert.Equal(t, 1, strings.Count(s, "type a int\n"))
+	assert.Equal(t, 1, strings.Count(s, "type b int\n"))
 }
 
 func TestSplitDeclsToUngroupedDecls2(t *testing.T) {
-	f := getFile(t, `package a
+	f := getFile(t, `package test
 var (
 	a int
 	b int
-)		
-`)
+)`)
 	decls := splitDeclsToUngroupedDecls(f.Decls)
-	assert.Equal(t, `package a
-
-var a int
-var b int
-`, getSource(t, &ast.File{Name: &ast.Ident{Name: "a"}, Decls: decls}))
+	s := getSource(t, &ast.File{Name: &ast.Ident{Name: "a"}, Decls: decls})
+	assert.Equal(t, 1, strings.Count(s, "package a\n"))
+	assert.Equal(t, 1, strings.Count(s, "var a int\n"))
+	assert.Equal(t, 1, strings.Count(s, "var b int\n"))
 }
 
 func gen(t *testing.T, code string, types string) string {
@@ -88,22 +85,11 @@ type str struct {
 	value VALUE
 }`, "string,int32;string,int64")
 
-	assert.Equal(t, `package test
-
-
-var aString string
-
-type strStringInt32 struct {
-	key	string
-	value	int32
-}
-
-type strStringInt64 struct {
-	key	string
-	value	int64
-}
-
-`, out)
+	assert.Equal(t, 0, strings.Count(out, "KEY"), out)
+	assert.Equal(t, 0, strings.Count(out, "VALUE"), out)
+	assert.Equal(t, 1, strings.Count(out, "type strStringInt32 struct {\n"), out)
+	assert.Equal(t, 1, strings.Count(out, "type strStringInt64 struct {\n"), out)
+	assert.Equal(t, 1, strings.Count(out, "var aString string\n"), out)
 }
 
 func TestSimpleFunction(t *testing.T) {
@@ -119,24 +105,9 @@ func min(a,b VALUE) bool {
 	return b
 }`, "int32;int64")
 
-	assert.Equal(t, `package test
-
-
-func minInt32(a, b int32) bool {
-	if a < b {
-		return a
-	}
-	return b
-}
-
-func minInt64(a, b int64) bool {
-	if a < b {
-		return a
-	}
-	return b
-}
-
-`, out)
+	assert.Equal(t, 0, strings.Count(out, "VALUE"), out)
+	assert.Equal(t, 1, strings.Count(out, "func minInt32(a, b int32) bool {\n"), out)
+	assert.Equal(t, 1, strings.Count(out, "func minInt64(a, b int64) bool {\n"), out)
 }
 
 func TestFunction(t *testing.T) {
@@ -152,24 +123,9 @@ func DoSomething(fn func(a, b NUMBER) bool, a, b NUMBER) NUMBER {
 	return b
 }`, "int32;int64")
 
-	assert.Equal(t, `package test
-
-
-func DoSomethingInt32(fn func(a, b int32) bool, a, b int32) int32 {
-	if fn(a, b) {
-		return a
-	}
-	return b
-}
-
-func DoSomethingInt64(fn func(a, b int64) bool, a, b int64) int64 {
-	if fn(a, b) {
-		return a
-	}
-	return b
-}
-
-`, out)
+	assert.Equal(t, 0, strings.Count(out, "NUMBER"), out)
+	assert.Equal(t, 1, strings.Count(out, "func DoSomethingInt32(fn func(a, b int32) bool, a, b int32) int32 {\n"), out)
+	assert.Equal(t, 1, strings.Count(out, "func DoSomethingInt64(fn func(a, b int64) bool, a, b int64) int64 {\n"), out)
 }
 
 func TestFunctionExpand(t *testing.T) {
@@ -187,20 +143,9 @@ func (l *List) len() int {
 }
 `, "int32;int64")
 
-	assert.Equal(t, `package test
-
-
-type ListInt32 struct{ items []int32 }
-
-func (l *ListInt32) len() int {
-	return len(l.items)
-}
-
-type ListInt64 struct{ items []int64 }
-
-func (l *ListInt64) len() int {
-	return len(l.items)
-}
-
-`, out)
+	assert.Equal(t, 0, strings.Count(out, "func (l *List) len() int"), out)
+	assert.Equal(t, 1, strings.Count(out, "type ListInt32 struct"), out)
+	assert.Equal(t, 1, strings.Count(out, "func (l *ListInt32) len() int {\n"), out)
+	assert.Equal(t, 1, strings.Count(out, "type ListInt64 struct"), out)
+	assert.Equal(t, 1, strings.Count(out, "func (l *ListInt64) len() int {\n"), out)
 }

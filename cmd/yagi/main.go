@@ -1,3 +1,4 @@
+// This package holds the command line tool yagi
 package main
 
 import (
