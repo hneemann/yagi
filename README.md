@@ -347,6 +347,82 @@ the first part uses `int64` the second `string` so `PushBack`, `PushFront`,
 `InsertBefore` and `InsertAfter` are typed methods now. As you can see there are also 
 two factory methods created: `NewInt64()` and `NewString()`.
 You can find the generated code [here](https://github.com/hneemann/yagi/blob/master/example/container/list.go).
+
+## Create Wrappers
+
+If you don't like the code bloat that comes with the generation of such complete 
+typed copys of the original code you can also create a template implementation of a 
+wrapper of the original type. Then you only have to create typed wrappers. 
+Imagine you have written a very complex implementation of a list which has a large code base.
+This list (`largecode.List`) uses the empty interface to store the list items.
+If you create a lot of typed copys of such a list you generate a large amount of 
+mostly identical code. Maybe you do not want to do that.
+
+So write a generic wrapper for the list:
+
+```go
+package wrap
+
+import "github.com/hneemann/yagi/example/wrapper/largecode"
+
+//generic
+type ITEM int
+
+type Wrapper struct {
+	parent largecode.List
+}
+
+// Add adds an element to the list
+func (l *Wrapper) Add(item ITEM) {
+	l.parent.Add(item)
+}
+
+// Get gets an element to the list
+func (l *Wrapper) Get(index int) ITEM {
+	item, ok := l.parent.Get(index).(ITEM)
+	if ok {
+		return item
+	}
+	panic("wrong type in list")
+}
+
+// Remove an element from the list
+func (l *Wrapper) Remove(index int) {
+	l.parent.Remove(index)
+}
+
+// Len returns the number of elements in the list
+func (l *Wrapper) Len() int {
+	return l.parent.Len()
+}
+```
+
+Now you can generate type save wrappers for `largecode.List` and use the
+type save wrappers instead of `largecode.List` itself:
+
+```go
+package main
+
+import "fmt"
+
+//go:generate yagi -tem=./wrap/wrapper.go -gen=int64;string -pkg=main
+
+func main() {
+	{
+		m := WrapperInt64{}
+		m.Add(1)
+		m.Add(2)
+		fmt.Println(m.Get(1))
+	}
+	{
+		m := WrapperString{}
+		m.Add("1")
+		m.Add("2")
+		fmt.Println(m.Get(1))
+	}
+}
+```
+You can find the generated code [here](https://github.com/hneemann/yagi/blob/master/example/wrapper/wrapper.go).
   
 ### State of the Work
 

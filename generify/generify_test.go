@@ -149,3 +149,65 @@ func (l *List) len() int {
 	assert.Equal(t, 1, strings.Count(out, "type ListInt64 struct"), out)
 	assert.Equal(t, 1, strings.Count(out, "func (l *ListInt64) len() int {\n"), out)
 }
+
+func TestWrapperExpandPointer(t *testing.T) {
+	out := gen(t, `package largecode
+
+//generic
+type ITEM interface{}
+
+type Wrapper struct {
+	parent List
+}
+
+// Add adds an element to the list
+func (l *Wrapper) Add(item ITEM) {
+	l.parent.Add(item)
+}`, "int32;int64;string;float64")
+
+	assert.Equal(t, 0, strings.Count(out, "type Wrapper struct"), out)
+	assert.Equal(t, 0, strings.Count(out, "func (l *Wrapper) Add(item int32)"), out)
+	assert.Equal(t, 0, strings.Count(out, "func (l *Wrapper) Add(item int64)"), out)
+	assert.Equal(t, 0, strings.Count(out, "func (l *Wrapper) Add(item string)"), out)
+	assert.Equal(t, 0, strings.Count(out, "func (l *Wrapper) Add(item float64)"), out)
+
+	assert.Equal(t, 1, strings.Count(out, "type WrapperInt32 struct"), out)
+	assert.Equal(t, 1, strings.Count(out, "func (l *WrapperInt32) Add(item int32)"), out)
+	assert.Equal(t, 1, strings.Count(out, "type WrapperInt64 struct"), out)
+	assert.Equal(t, 1, strings.Count(out, "func (l *WrapperInt64) Add(item int64)"), out)
+	assert.Equal(t, 1, strings.Count(out, "type WrapperString struct"), out)
+	assert.Equal(t, 1, strings.Count(out, "func (l *WrapperString) Add(item string)"), out)
+	assert.Equal(t, 1, strings.Count(out, "type WrapperFloat64 struct"), out)
+	assert.Equal(t, 1, strings.Count(out, "func (l *WrapperFloat64) Add(item float64)"), out)
+}
+
+func TestWrapperExpand(t *testing.T) {
+	out := gen(t, `package largecode
+
+//generic
+type ITEM interface{}
+
+type Wrapper struct {
+	parent List
+}
+
+// Add adds an element to the list
+func (l Wrapper) Add(item ITEM) {
+	l.parent.Add(item)
+}`, "int32;int64;string;float64")
+
+	assert.Equal(t, 0, strings.Count(out, "type Wrapper struct"), out)
+	assert.Equal(t, 0, strings.Count(out, "func (l *Wrapper) Add(item int32)"), out)
+	assert.Equal(t, 0, strings.Count(out, "func (l *Wrapper) Add(item int64)"), out)
+	assert.Equal(t, 0, strings.Count(out, "func (l *Wrapper) Add(item string)"), out)
+	assert.Equal(t, 0, strings.Count(out, "func (l *Wrapper) Add(item float64)"), out)
+
+	assert.Equal(t, 1, strings.Count(out, "type WrapperInt32 struct"), out)
+	assert.Equal(t, 1, strings.Count(out, "func (l WrapperInt32) Add(item int32)"), out)
+	assert.Equal(t, 1, strings.Count(out, "type WrapperInt64 struct"), out)
+	assert.Equal(t, 1, strings.Count(out, "func (l WrapperInt64) Add(item int64)"), out)
+	assert.Equal(t, 1, strings.Count(out, "type WrapperString struct"), out)
+	assert.Equal(t, 1, strings.Count(out, "func (l WrapperString) Add(item string)"), out)
+	assert.Equal(t, 1, strings.Count(out, "type WrapperFloat64 struct"), out)
+	assert.Equal(t, 1, strings.Count(out, "func (l WrapperFloat64) Add(item float64)"), out)
+}

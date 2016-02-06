@@ -96,6 +96,8 @@ func (g *Generify) Do(packageName string, w io.Writer) error {
 
 	g.genericDecls = g.inspectAllDeclsForDependencies(decls)
 
+	g.checkMethodDependencies()
+
 	g.renameStructsAndVars()
 
 	g.renameFunctions()
@@ -275,6 +277,46 @@ func (g *Generify) inspectAllDeclsForDependencies(decls []ast.Decl) []*declWithD
 		newDecls = append(newDecls, &declWithDependency{decl, sv.foundTypes, nil})
 	}
 	return newDecls
+}
+
+// add more dependencies to the given struct
+func (g *Generify) structDependsOn(structName string, types intset.IntSet) {
+	for _, decl := range g.genericDecls {
+		if genDecl, ok := decl.decl.(*ast.GenDecl); ok {
+			spec := genDecl.Specs[0]
+			if typeSpec, ok := spec.(*ast.TypeSpec); ok {
+				if typeSpec.Name.Name == structName {
+					decl.usedTypes.AddAll(types)
+				}
+			}
+		}
+	}
+}
+
+// checks for methods depending on generic types to handle the case
+// if the struct itself does not.
+func (g *Generify) checkMethodDependencies() {
+	for _, decl := range g.genericDecls {
+		if funcDecl, ok := decl.decl.(*ast.FuncDecl); ok {
+			if funcDecl.Recv != nil { // is method
+				field := funcDecl.Recv.List[0]
+				obj := field.Names[0].Obj
+				if obj.Kind == ast.Var {
+					if field, ok := obj.Decl.(*ast.Field); ok {
+						exp := field.Type
+						if star, ok := exp.(*ast.StarExpr); ok { // get inner if pointer receiver
+							exp = star.X
+						}
+						if ident, ok := exp.(*ast.Ident); ok {
+							g.structDependsOn(ident.Name, decl.usedTypes)
+						} else {
+							panic("syntax error")
+						}
+					}
+				}
+			}
+		}
+	}
 }
 
 type renameVisitor struct {
