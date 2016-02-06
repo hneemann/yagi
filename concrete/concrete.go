@@ -5,12 +5,15 @@ import (
 	"strings"
 )
 
+// Types holds the types fo one concrete type
 type Types []string
 
+// Instances holds all the concrete instances which are to create
 type Instances struct {
 	Instance []Types
 }
 
+// New creates a new instance
 func New(types string) (*Instances, error) {
 	con := Instances{}
 	inst := strings.Split(types, ";")

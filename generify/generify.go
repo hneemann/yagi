@@ -13,14 +13,13 @@ import (
 	"github.com/hneemann/yagi/generify/intset"
 )
 
-var NEWLINE = []byte("\n\n")
+var newline = []byte("\n\n")
 
 func checkNodeIsOffType(n ast.Node, kind ast.ObjKind) (*ast.Ident, bool) {
 	if ident, ok := n.(*ast.Ident); ok {
 		return ident, ident.Obj != nil && ident.Obj.Kind == kind
-	} else {
-		return nil, false
 	}
+	return nil, false
 }
 
 type declWithDependency struct {
@@ -39,7 +38,7 @@ func (dwd declWithDependency) String() string {
 func (dwd *declWithDependency) isAllreadyWritten(types concrete.Types) bool {
 	for _, wi := range dwd.writtenInstances {
 		same := 0
-		for i, _ := range dwd.usedTypes {
+		for i := range dwd.usedTypes {
 			if wi[i] == types[i] {
 				same++
 			}
@@ -52,12 +51,17 @@ func (dwd *declWithDependency) isAllreadyWritten(types concrete.Types) bool {
 	return false
 }
 
+// Generify holds the data used to work on the ast
 type Generify struct {
-	file          *ast.File
+	// the parsed original template
+	file *ast.File
+	// the concrete types for which the code is generated
 	concreteTypes *concrete.Instances
-	genTypes      []string
-	genericDecls  []*declWithDependency
-
+	// the name of the generic types
+	genTypes []string
+	// all the declarations from the template
+	genericDecls []*declWithDependency
+	// list of rename actions which are to perform on the ast to get a concrete type
 	renameActions []renameAction
 }
 
@@ -69,11 +73,12 @@ func (g *Generify) addRenameAction(renameAction renameAction) {
 	g.renameActions = append(g.renameActions, renameAction)
 }
 
+// New creates a new Generify instance
 func New(file *ast.File, concreteTypes *concrete.Instances) *Generify {
 	return &Generify{file: file, concreteTypes: concreteTypes}
 }
 
-// creates a concrete ast from the generic one
+// Do creates a concrete ast from the generic one and writes it to the given io.Writer
 func (g *Generify) Do(packageName string, w io.Writer) error {
 	var decls []ast.Decl
 	g.genTypes, decls = findGenerics(g.file)
@@ -104,7 +109,7 @@ func (g *Generify) Do(packageName string, w io.Writer) error {
 	if err != nil {
 		return err
 	}
-	w.Write(NEWLINE)
+	w.Write(newline)
 
 	for _, types := range g.concreteTypes.Instance {
 
@@ -120,7 +125,7 @@ func (g *Generify) Do(packageName string, w io.Writer) error {
 				if err != nil {
 					return err
 				}
-				w.Write(NEWLINE)
+				w.Write(newline)
 			}
 		}
 	}
@@ -143,7 +148,7 @@ type declVisitor interface {
 	finalize(*declWithDependency)
 }
 
-func (g *Generify) Walk(v declVisitor) {
+func (g *Generify) walk(v declVisitor) {
 	for _, decl := range g.genericDecls {
 		ast.Walk(v, decl.decl)
 		v.finalize(decl)
@@ -320,10 +325,10 @@ func (g *Generify) renameStructsAndVars() {
 		if genDecl, ok := decl.decl.(*ast.GenDecl); ok {
 			switch spec := genDecl.Specs[0].(type) {
 			case *ast.TypeSpec:
-				g.Walk(&renameVisitor{g, ast.Typ, spec.Name.Name, decl.usedTypes, false})
+				g.walk(&renameVisitor{g, ast.Typ, spec.Name.Name, decl.usedTypes, false})
 			case *ast.ValueSpec:
 				for _, name := range spec.Names {
-					g.Walk(&renameVisitor{g, ast.Var, name.Name, decl.usedTypes, false})
+					g.walk(&renameVisitor{g, ast.Var, name.Name, decl.usedTypes, false})
 				}
 			}
 		}
@@ -333,7 +338,7 @@ func (g *Generify) renameStructsAndVars() {
 func (g *Generify) renameFunctions() {
 	for _, decl := range g.genericDecls {
 		if funcDecl, ok := decl.decl.(*ast.FuncDecl); ok {
-			g.Walk(&renameVisitor{g, ast.Fun, funcDecl.Name.Name, decl.usedTypes, false})
+			g.walk(&renameVisitor{g, ast.Fun, funcDecl.Name.Name, decl.usedTypes, false})
 		}
 	}
 }
