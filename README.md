@@ -1,4 +1,4 @@
-##yagi
+##Generics for Go
 
 This is a tool to add a simple template functionality to the Go language.
 
@@ -39,7 +39,8 @@ them correctly:
 1. [gen](https://clipperhouse.github.io/gen/)
    `gen` is a tool which helps you to generate code from a template. You have to implement this template in Go.
    To add a new template you have to implement the `TypeWriter`-interface. This interface has a method with takes
-   a `io.Writer` as an argument. To this writer you have to write the generated concrete code.
+   a `io.Writer` and the information about the concrete type as an argument. To this writer 
+   you have to write the generated concrete code.
    So creating a template is expensive and the templates are hard to test.
 
 2. [genny](https://github.com/cheekybits/genny/)
@@ -50,14 +51,15 @@ them correctly:
    has to take care about the names of the types and functions, in a way that the generated code is working as expected.
 
 3. [gonerics](http://bouk.co/blog/idiomatic-generics-in-go/)
-   `goneric` uses the go packages to parse a go file and the created ast is traversed and the generic types are 
+   `goneric` uses the go packages `go/parser` and `go/ast` to parse a go file. 
+   The created ast is traversed and the generic types are 
    renamed to the concrete types. The templates are using simple names like 'T' or 'U' which a renamed traversing 
    the ast. Also here the author of the template has to take care about the names of structs and functions to generate 
    code which can live in one package. 
 
 ###The Idea
 
-I found it a good idea not only to rename the types, but also the structs and the functions which use this types.
+I found it a good idea not only to rename the types, but also the structs and the functions which use this types if neccesary.
 So I can generate various structs and methods and all the code can live in the same package or even in the same 
 file. So I implemented a generic rename tool which parses the ast, looks for the generic types, looks which structs 
 and functions are effected by this types and rename also the affected structs and functions in a propper way. Then 
@@ -66,7 +68,7 @@ file which contains all the needed declarations.
      
 ###Example
 
-As always when talking about generics we start with a simple list:
+Let us start with a simple list:
 
 ```go
 package temp
@@ -352,8 +354,8 @@ You can find the generated code [here](https://github.com/hneemann/yagi/blob/mas
 
 If you don't like the code bloat that comes with the generation of such complete 
 typed copys of the original code you can also create a template implementation of a 
-wrapper of the original type. Then you only have to create typed wrappers. 
-Imagine you have written a very complex implementation of a list which has a large code base.
+wrapper for the original type. Then you only have to create typed wrappers. 
+Imagine you have written a very complex implementation of a list which consists of large amount of code.
 This list (`largecode.List`) uses the empty interface to store the list items.
 If you create a lot of typed copys of such a list you generate a large amount of 
 mostly identical code. Maybe you do not want to do that.
@@ -377,7 +379,7 @@ func (l *Wrapper) Add(item ITEM) {
 	l.delegate.Add(item)
 }
 
-// Get gets an element to the list
+// Get gets an element from the list
 func (l *Wrapper) Get(index int) ITEM {
 	item, ok := l.delegate.Get(index).(ITEM)
 	if ok {
@@ -422,6 +424,7 @@ func main() {
 	}
 }
 ```
+Again the methods `Add` and `Get` are typed.
 You can find the generated code [here](https://github.com/hneemann/yagi/blob/master/example/wrapper/wrapper.go).
   
 ### State of the Work
