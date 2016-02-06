@@ -1,6 +1,6 @@
 ##yagi
 
-This a simple tool to add a template functionality to the go language.
+This is a tool to add a simple template functionality to the Go language.
 
 ###Motivation
 
@@ -8,7 +8,7 @@ I am a experienced programmer with a 10+ years Java background and I use Go as m
 three years. One of the Java features I used a lot are the generics available in Java. 
 But the Java generics are complex and hard to understand. And they seem to overgrow: If you 
 start to use them you get compiler warning very quickly. And to fix them you have to add generics to more and more 
-classes. After a while there are corner cases which a very hard to fix, so you start to add `@SuppressWarnings` 
+classes. After a while there are corner cases which a very hard to fix. So you start to add `@SuppressWarnings` 
 annotations to the code. I don't like the `@SuppressWarnings` annotation.
 I remember situations where I had a really hard fight with the Java type system to get the generic types working 
 without a compiler warning, and at the next day a small modification on the code starts the next hard fight.
@@ -19,16 +19,16 @@ which some methods working on them. And that you could reuse the same structure 
 deal with such a situation without the usage of generics? Copy and Paste is not a good idea because the result is 
 hard to maintain. Using the empty interface and throwing away all the compilers type checking is also not a good idea.
 Or you can rewrite the code with the empty interface and implement a wrapper for each type which does all the 
-boxing and unboxing from and to the empty interface?
+boxing and unboxing from and to the empty interface.
 
 Using templates like in C++ seems to be hard to debug if there goes something wrong because you can not see which
-code is generated on the fly. (But I'm not a experienced C++ programmer so maybe I'm wrong!)
+code is generated on the fly. (But I'm not a C++ programmer so maybe I'm wrong!)
   
 What I would like to do is to keep my code nearly unchanged and generate implementations for other types based 
 on the existing code. 
 If this file is generated I can inspect it in detail if something goes wrong. If there is no other 
-way I can also modify the file to fix a problem. If I do so, the code is hard to maintain in the future, but it 
-is possible. 
+way I can also modify the file to fix a problem. This is not a good idea: The code is hard to maintain in the future, but it 
+its possible if neccesary. 
 
 ###Former work
 
@@ -37,97 +37,103 @@ Here are some of them and my understanding of how they work. I have to apologise
 them correctly: 
 
 1. [gen](https://clipperhouse.github.io/gen/)
-   `gen` is a tool which heps you generate code from a template. You have to implement this template in go.
-   To add a new template you have to implement the `TypeWriter`-interface. this interface has a method with
-   a `io.Writer` as a parameter. To this writer you hafe to write the template code.
+   `gen` is a tool which helps you to generate code from a template. You have to implement this template in Go.
+   To add a new template you have to implement the `TypeWriter`-interface. This interface has a method with takes
+   a `io.Writer` as a parameter. To this writer you have to write the generated concrete code.
    So creating a template is expensive and the templates are hard to test.
 
 2. [genny](https://github.com/cheekybits/genny/)
    `genny` is also a tool to handle templates. With `genny` a template is a simple go file. So it is very cheap 
    to create and maintain. This go file has no extension's which break the code. 
    So the template can be compiled and tested in a idiomatic way.
-   But it uses a simple text based find and replace technique to create the concrete types. So the template author
-   has to take care about the names of the types, so that working code is generated.
+   But it uses a simple text based search and replace technique to create the concrete types. So the template author
+   has to take care about the names of the types and functions, so that the generated code is working as expected.
 
 3. [gonerics](http://bouk.co/blog/idiomatic-generics-in-go/)
-   `goneric` uses the go packages to parse a go file and the the ast is traversed and the generic types are 
-   renamed to the concrete types. The templates uses simple names like 'T' or 'U' which a renamed traversing 
-   the ast. Also the author of the template has to take care about the names of structs and functions to generate 
-   code which can live in one package.  
+   `goneric` uses the go packages to parse a go file and the created ast is traversed and the generic types are 
+   renamed to the concrete types. The templates are using simple names like 'T' or 'U' which a renamed traversing 
+   the ast. Also here the author of the template has to take care about the names of structs and functions to generate 
+   code which can live in one package. 
 
 ###The Idea
 
-I found it a good idea not only to rename the typs, but also the structs and the functions which use this types.
+I found it a good idea not only to rename the types, but also the structs and the functions which use this types.
 So I can generate various structs and methods and all the code can live in the same package or even in the same 
-file. So I implemented a generic rename tool which parses the ast looks for the generic types, looks which structs 
-and functions use this types and rename also this struczs and functions in a propper way. The I can write the 
-renamed ast to a file. And this can be done for every type I need and at the end I get a generated file which caontains 
-all the needed declarations.
+file. So I implemented a generic rename tool which parses the ast, looks for the generic types, looks which structs 
+and functions are effected by this types and rename also the affected structs and functions in a propper way. Then 
+I can write the renamed ast to a file. And this can be done for every type I need and at the end I get a generated 
+file which contains all the needed declarations.
      
 ###Example
 
 As always when talking about generics we start with a simple list:
 
 ```go
-package tem
+package temp
 
 type ITEM int
 
-// struct to store the elements
+// List stores the elements
 type List struct {
-    items []ITEM
+	items []ITEM
 }
 
+// Items returns the stored items
 func (l List) Items() []ITEM {
-    return l.items
+	return l.items
 }
 
+// Add adds an element to the list
 func (l *List) Add(item ITEM) {
-    l.items = append(l.items, item)
+	l.items = append(l.items, item)
 }
 
+// Len returns the number of elements in the list
 func (l *List) Len() int {
-    return len(l.items)
+	return len(l.items)
 }
 ```
 
-To allow the code generator to identify the generic type the type is annotated with a special comment:
+To allow the code generator to identify the generic type, the type is annotated with a special comment:
 
 ```go
-package tem
+package temp
 
 //generic
 type ITEM int
 
-// struct to store the elements
+// List stores the elements
 type List struct {
-    items []ITEM
+	items []ITEM
 }
 
+// Items returns the stored items
 func (l List) Items() []ITEM {
-    return l.items
+	return l.items
 }
 
+// Add adds an element to the list
 func (l *List) Add(item ITEM) {
-    l.items = append(l.items, item)
+	l.items = append(l.items, item)
 }
 
+// Len returns the number of elements in the list
 func (l *List) Len() int {
-    return len(l.items)
+	return len(l.items)
 }
 ```
 
-That's it. This is ideomatic go code which can be tested and used without any modification. It does not depend on 
+That's it. This is ideomatic Go code which can be tested and used without any modification. It does not depend on 
 any packages.
 
 If we want to generate some other types we can invoke `yagi` by adding this go:generate statement to a 
 file which lives in the parent directory of our list: 
 
-    //go:generate yagi -tem=./tem/list.go -gen=int64;int32 -pkg=main
+    //go:generate yagi -tem=./temp/list.go -gen=int64;int32 -pkg=main
 
-The `-gen` flag says that I need the list for the type `int64` and `int32` and the `-pkg` flag sets the package 
+The `-gen` flag says that I need a list for the type `int64` and `int32` and the `-pkg` flag sets the package 
 name to `main`.
-Starting `go generate` from the command line we get:
+Running `go generate` from the command line we get:
  
 ```go
 // generated by yagi. Don't modify this file!
@@ -168,7 +174,7 @@ func (l *ListInt32) Len() int {
 }
 ```
 
-As you can see not only the type `ITEM` is renamed, but also the method names are modified in a propper way.
+As you can see not only the type `ITEM` is renamed, but also the name of the structs are modified in a propper way.
 But we can do something more complex:
 
 Imagine a map which has a KEY and a VALUE type. And we want to do some magic on the keys:
@@ -280,6 +286,7 @@ func (m MapStringString) Get(key string) string {
 
 We get three types: `MapStringInt64` and `MapStringString` as expected and one type `KeyMagicString` which 
 is shared by the other two types.
+And we get two factory methods (`NewStringInt64()` and `NewStringSrting()`) which create the new types.
 
 ### A container/list example
 
@@ -296,9 +303,9 @@ type ITEM interface{}
 After that I have to modify the code in a way that it uses this new type instead of the empty interface. 
 There are seven usages of the empty interface and I can simply replace `interface{}` by `ITEM` in the file seven times.
 
-After that the tests and the example comming with the list are still running without any modification. That's nice!
+After that the tests and the example comming with the list, are still running without any modification. That's nice!
 
-Now I can write the folowing code which is based on the list example given by the go authors:
+Now I can write the following code which is based on the list example given by the Go authors:
 
 ```go
 package main
@@ -335,10 +342,11 @@ func main() {
 }
 ```
 
-This code works as expected: The content of the list (1,2,3,4 ) is printed twice but 
+This code works as expected: The content of the list (1,2,3,4) is printed twice but 
 the first part uses `int64` the second `string` so `PushBack`, `PushFront`, 
 `InsertBefore` and `InsertAfter` are typed methods now. As you can see there are also 
 two factory methods created: `NewInt64()` and `NewString()`.
+You can find the generated code [here](https://github.com/hneemann/yagi/blob/master/example/container/list.go).
   
 ### State of the Work
 
@@ -349,5 +357,4 @@ work as expected. But I am happy about comments.
 One open issue is the handling of the comments in the template. It seems to me that they are 
 bound to a fixed code position when they are parsed and stored in the ast. So if the type 
 names became longer, the comments move around in the generated code. So at the moment the 
-comments are simply removed from the code, which makes it harder to understand the
-generated code.
+comments are simply removed from the generated code, which makes it harder to understand.
