@@ -22,7 +22,7 @@ Or you can rewrite the code with the empty interface and implement a wrapper for
 boxing and unboxing from and to the empty interface.
 
 Using templates like in C++ seems to be hard to debug if there goes something wrong because you can not see which
-code is generated on the fly. (But I'm not a C++ programmer so maybe I'm wrong!)
+code is generated on the fly (But I'm not a C++ programmer so maybe I'm wrong!).
   
 What I would like to do is to keep my code nearly unchanged and generate implementations for other types based 
 on the existing code. 
@@ -32,14 +32,14 @@ its possible if neccesary.
 
 ###Former work
 
-There are a lot of different implementations out there and all are usable and are working.
+There are a lot of different implementations out there and all of them are usable and are working.
 Here are some of them and my understanding of how they work. I have to apologise if I did not understand 
 them correctly: 
 
 1. [gen](https://clipperhouse.github.io/gen/)
    `gen` is a tool which helps you to generate code from a template. You have to implement this template in Go.
    To add a new template you have to implement the `TypeWriter`-interface. This interface has a method with takes
-   a `io.Writer` as a parameter. To this writer you have to write the generated concrete code.
+   a `io.Writer` as an argument. To this writer you have to write the generated concrete code.
    So creating a template is expensive and the templates are hard to test.
 
 2. [genny](https://github.com/cheekybits/genny/)
@@ -47,7 +47,7 @@ them correctly:
    to create and maintain. This go file has no extension's which break the code. 
    So the template can be compiled and tested in a idiomatic way.
    But it uses a simple text based search and replace technique to create the concrete types. So the template author
-   has to take care about the names of the types and functions, so that the generated code is working as expected.
+   has to take care about the names of the types and functions, in a way that the generated code is working as expected.
 
 3. [gonerics](http://bouk.co/blog/idiomatic-generics-in-go/)
    `goneric` uses the go packages to parse a go file and the created ast is traversed and the generic types are 
@@ -224,7 +224,7 @@ func (m Map) Get(key KEY) VALUE {
 }
 ```
 
-The type `KeyMagic` depends only on `KEY`, the type `Map` depends on `KEY` and `VALUE`. Again we can generate some 
+The struct `KeyMagic` depends only on `KEY`, the struct `Map` depends on `KEY` and `VALUE`. Again we can generate some 
 concrete other types:
 
     //go:generate yagi -tem=./temp/mmap.go -gen=string,int64;string,string -pkg=main
