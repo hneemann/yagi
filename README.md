@@ -369,17 +369,17 @@ import "github.com/hneemann/yagi/example/wrapper/largecode"
 type ITEM int
 
 type Wrapper struct {
-	parent largecode.List
+	delegate largecode.List
 }
 
 // Add adds an element to the list
 func (l *Wrapper) Add(item ITEM) {
-	l.parent.Add(item)
+	l.delegate.Add(item)
 }
 
 // Get gets an element to the list
 func (l *Wrapper) Get(index int) ITEM {
-	item, ok := l.parent.Get(index).(ITEM)
+	item, ok := l.delegate.Get(index).(ITEM)
 	if ok {
 		return item
 	}
@@ -388,12 +388,12 @@ func (l *Wrapper) Get(index int) ITEM {
 
 // Remove an element from the list
 func (l *Wrapper) Remove(index int) {
-	l.parent.Remove(index)
+	l.delegate.Remove(index)
 }
 
 // Len returns the number of elements in the list
 func (l *Wrapper) Len() int {
-	return l.parent.Len()
+	return l.delegate.Len()
 }
 ```
 
