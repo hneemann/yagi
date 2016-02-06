@@ -19,7 +19,7 @@ which some methods working on them. And that you could reuse the same structure 
 deal with such a situation without the usage of generics? Copy and Paste is not a good idea because the result is 
 hard to maintain. Using the empty interface and throwing away all the compilers type checking is also not a good idea.
 Or you can rewrite the code with the empty interface and implement a wrapper for each type which does all the 
-boxing and unboxing from and to the empty interface.
+boxing and unboxing from and to the empty interface. Also an error prone work.
 
 Using templates like in C++ seems to be hard to debug if there goes something wrong because you can not see which
 code is generated on the fly (But I'm not a C++ programmer so maybe I'm wrong!).
@@ -27,8 +27,8 @@ code is generated on the fly (But I'm not a C++ programmer so maybe I'm wrong!).
 What I would like to do is to keep my code nearly unchanged and generate implementations for other types based 
 on the existing code. 
 If this file is generated I can inspect it in detail if something goes wrong. If there is no other 
-way I can also modify the file to fix a problem. This is not a good idea: The code is hard to maintain in the future, but it 
-its possible if neccesary. 
+way I can also modify the file to fix a problem. This is not a good idea: The code is hard to maintain in the future! 
+But it is possible if neccesary. 
 
 ###Former work
 
@@ -436,4 +436,8 @@ work as expected. But I am happy about comments.
 One open issue is the handling of the comments in the template. It seems to me that they are 
 bound to a fixed code position when they are parsed and stored in the ast. So if the type 
 names became longer, the comments move around in the generated code. So at the moment the 
-comments are simply removed from the generated code, which makes it harder to understand.
+comments are simply removed from the generated code, which makes the code harder to understand.
+
+An other open issue are special properties of the types: You can write a template which compares
+two values to check wich of them is larger. If you replace the template type by a struct you will
+get compile time errors because structs are not comparable in that way.
