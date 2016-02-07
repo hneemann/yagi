@@ -1,4 +1,4 @@
-##Generics for Go
+##Generics for Go [![Build Status](https://travis-ci.org/hneemann/yagi.svg?branch=master)](https://travis-ci.org/hneemann/yagi)
 
 This is a tool to add a simple template functionality to the Go language.
 
