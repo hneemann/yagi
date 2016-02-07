@@ -442,7 +442,7 @@ bound to a fixed code position when they are parsed and stored in the ast. So if
 names became longer, the comments move around in the generated code. So at the moment the 
 comments are simply removed from the generated code, which makes the code harder to read.
 
-An other open issue are the special properties of the types: You can write a template which compares
+Other open issues are the special properties of the types: You can write a template which compares
 two values to check whichever is greater. If you replace the template type by a struct you will
 get compile time errors because structs are not comparable in that way.
 
