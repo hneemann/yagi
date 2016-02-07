@@ -4,14 +4,15 @@ This is a tool to add a simple template functionality to the Go language.
 
 ###Motivation
 
-I am a experienced programmer with a 10+ years Java background and I use Go as my "first" language since about 
-three years. One of the Java features I used a lot are the generics available in Java. 
+I am an experienced programmer with a 10+ years Java background and I use Go as my "first" language since about 
+three years now. One of the Java features I used a lot are the generics available in Java. 
 But the Java generics are complex and hard to understand. And they seem to overgrow: If you 
 start to use them you get compiler warning very quickly. And to fix them you have to add generics to more and more 
 classes. After a while there are corner cases which a very hard to fix. So you start to add `@SuppressWarnings` 
 annotations to the code. I don't like the `@SuppressWarnings` annotation.
-I remember situations where I had a really hard fight with the Java type system to get the generic types working 
-without a compiler warning, and at the next day a small modification on the code starts the next hard fight.
+I remember situations where I had a really hard fight against the Java type system to get the generic 
+types working without a compiler warning. 
+And at the next day a small code modification introduces new compiler warnings.
 Therefore, I can understand the go authors who do not want to add something like that to the Go language.
 
 But sometimes you write a complex piece of code and then you realize that you can extract a data structure 
@@ -20,9 +21,6 @@ deal with such a situation without the usage of generics? Copy and Paste is not 
 hard to maintain. Using the empty interface and throwing away all the compilers type checking is also not a good idea.
 Or you can rewrite the code with the empty interface and implement a wrapper for each type which does all the 
 boxing and unboxing from and to the empty interface. Also an error prone work.
-
-Using templates like in C++ seems to be hard to debug if there goes something wrong because you can not see which
-code is generated on the fly (But I'm not a C++ programmer so maybe I'm wrong!).
   
 What I would like to do is to keep my code nearly unchanged and generate implementations for other types based 
 on the existing code. 
@@ -34,13 +32,13 @@ But it is possible if neccesary.
 
 There are a lot of different implementations out there and all of them are usable and are working.
 Here are some of them and my understanding of how they work. I have to apologise if I did not understand 
-them correctly: 
+them correctly:
 
 1. [gen](https://clipperhouse.github.io/gen/)
    `gen` is a tool which helps you to generate code from a template. You have to implement this template in Go.
    To add a new template you have to implement the `TypeWriter`-interface. This interface has a method with takes
-   a `io.Writer` and the information about the concrete type as an argument. To this writer 
-   you have to write the generated concrete code.
+   a `io.Writer` and the information about the concrete type as an argument. 
+   To this `io.Writer` you have to write the generated concrete code.
    So creating a template is expensive and the templates are hard to test.
 
 2. [genny](https://github.com/cheekybits/genny/)
@@ -49,13 +47,14 @@ them correctly:
    So the template can be compiled and tested in a idiomatic way.
    But it uses a simple text based search and replace technique to create the concrete types. So the template author
    has to take care about the names of the types and functions, in a way that the generated code is working as expected.
+   At the end the code looks somewhat strange.
 
 3. [gonerics](http://bouk.co/blog/idiomatic-generics-in-go/)
    `goneric` uses the go packages `go/parser` and `go/ast` to parse a go file. 
-   The created ast is traversed and the generic types are 
-   renamed to the concrete types. The templates are using simple names like 'T' or 'U' which a renamed traversing 
-   the ast. Also here the author of the template has to take care about the names of structs and functions to generate 
-   code which can live in one package. 
+   The created ast is traversed and the generic types are renamed to the concrete types. 
+   The templates are using simple names like 'T' or 'U' which a renamed by traversing the ast. 
+   But the names of structs and functions are not touched. So if you want to generate code for more then one type
+   the code has to live in different packages.
 
 ###The Idea
 
@@ -64,7 +63,7 @@ So I can generate various structs and methods and all the code can live in the s
 file. So I implemented a generic rename tool which parses the ast, looks for the generic types, looks which structs 
 and functions are effected by this types and rename also the affected structs and functions in a propper way. Then 
 I can write the renamed ast to a file. And this can be done for every type I need and at the end I get a generated 
-file which contains all the needed declarations.
+file which contains all the neccesary declarations.
      
 ###Example
 
@@ -96,7 +95,7 @@ func (l *List) Len() int {
 }
 ```
 
-To allow the code generator to identify the generic type, the type is annotated with a special comment:
+To allow the code generator to identify the generic type, the type needs to be annotated with a special comment:
 
 ```go
 package temp
@@ -131,17 +130,22 @@ any packages.
 If we want to generate some other types we can invoke `yagi` by adding this go:generate statement to a 
 file which lives in the parent directory of our list: 
 
-    //go:generate yagi -tem=./temp/list.go -gen=int64;int32 -pkg=main
+    //go:generate yagi -tem=./temp/list.go -gen=int64;int32
 
-The `-gen` flag says that I need a list for the type `int64` and `int32` and the `-pkg` flag sets the package 
-name to `main`.
+The `-gen` flag says that I need a list for the type `int64` and `int32`.
+The package name of the generated file is set to the directory name of the generated 
+file, so in most cases it will be ok. If you need an other name you can set it by `-pac=main`.
+Before a file is written, it is checked if it already exists. If it exists, it is checked whether 
+it was created by yagi. If not you will get an error. 
+So you can not overwrite a manualy created file by a mistake.
+
 Running `go generate` from the command line we get:
  
 ```go
 // generated by yagi. Don't modify this file!
 // Any changes will be lost if this file is regenerated.
 
-package main
+package list
 
 type ListInt64 struct {
     items []int64
@@ -229,7 +233,7 @@ func (m Map) Get(key KEY) VALUE {
 The struct `KeyMagic` depends only on `KEY`, the struct `Map` depends on `KEY` and `VALUE`. Again we can generate some 
 concrete other types:
 
-    //go:generate yagi -tem=./temp/mmap.go -gen=string,int64;string,string -pkg=main
+    //go:generate yagi -tem=./temp/mmap.go -gen=string,int64;string,string
     
 We want to create a `<string,int64>` and a `<string,string>` Map. And this is what we get:
 
@@ -237,7 +241,7 @@ We want to create a `<string,int64>` and a `<string,string>` Map. And this is wh
 // generated by yagi. Don't modify this file!
 // Any changes will be lost if this file is regenerated.
 
-package main
+package mmap
 
 type KeyMagicString struct {
 	counter int
@@ -288,7 +292,7 @@ func (m MapStringString) Get(key string) string {
 
 We get three types: `MapStringInt64` and `MapStringString` as expected and one type `KeyMagicString` which 
 is shared by the other two types.
-And we get two factory methods (`NewStringInt64()` and `NewStringSrting()`) which create the new types.
+And we get two factory methods (`NewStringInt64()` and `NewStringString()`) which will create the new types.
 
 ### A container/list example
 
@@ -310,13 +314,13 @@ After that the tests and the example comming with the list, are still running wi
 Now I can write the following code which is based on the list example given by the Go authors:
 
 ```go
-package main
+package container
 
 import "fmt"
 
-//go:generate yagi -tem=./list/list.go -gen=int64;string -pkg=main
+//go:generate yagi -tem=./list/list.go -gen=int64;string
 
-func main() {
+func ExampleList() {
 	{
 		l := NewInt64()
 		e4 := l.PushBack(4)
@@ -345,7 +349,7 @@ func main() {
 ```
 
 This code works as expected: The content of the list (1,2,3,4) is printed twice but 
-the first part uses `int64` the second `string` so `PushBack`, `PushFront`, 
+the first part uses `int64` the second `string`. So `PushBack`, `PushFront`, 
 `InsertBefore` and `InsertAfter` are typed methods now. As you can see there are also 
 two factory methods created: `NewInt64()` and `NewString()`.
 You can find the generated code [here](https://github.com/hneemann/yagi/blob/master/example/container/list.go).
@@ -355,12 +359,12 @@ You can find the generated code [here](https://github.com/hneemann/yagi/blob/mas
 If you don't like the code bloat that comes with the generation of such complete 
 typed copys of the original code you can also create a template implementation of a 
 wrapper for the original type. Then you only have to create typed wrappers. 
-Imagine you have written a very complex implementation of a list which consists of large amount of code.
+Imagine you have written a very complex implementation of a list which consists of a large amount of code.
 This list (`largecode.List`) uses the empty interface to store the list items.
 If you create a lot of typed copys of such a list you generate a large amount of 
 mostly identical code. Maybe you do not want to do that.
 
-So write a generic wrapper for the list:
+So you can write a generic wrapper for the list:
 
 ```go
 package wrap
@@ -379,7 +383,7 @@ func (l *Wrapper) Add(item ITEM) {
 	l.delegate.Add(item)
 }
 
-// Get gets an element from the list
+// Get returns an element from the list
 func (l *Wrapper) Get(index int) ITEM {
 	item, ok := l.delegate.Get(index).(ITEM)
 	if ok {
@@ -403,13 +407,13 @@ Now you can generate type save wrappers for `largecode.List` and use the
 type save wrappers instead of `largecode.List` itself:
 
 ```go
-package main
+package wrapper
 
 import "fmt"
 
-//go:generate yagi -tem=./wrap/wrapper.go -gen=int64;string -pkg=main
+//go:generate yagi -tem=./wrap/wrapper.go -gen=int64;string
 
-func main() {
+func ExampleWrapper() {
 	{
 		m := WrapperInt64{}
 		m.Add(1)
@@ -424,7 +428,7 @@ func main() {
 	}
 }
 ```
-Again the methods `Add` and `Get` are typed.
+Again the methods `Add` and `Get` are typed now.
 You can find the generated code [here](https://github.com/hneemann/yagi/blob/master/example/wrapper/wrapper.go).
   
 ### State of the Work
@@ -436,8 +440,11 @@ work as expected. But I am happy about comments.
 One open issue is the handling of the comments in the template. It seems to me that they are 
 bound to a fixed code position when they are parsed and stored in the ast. So if the type 
 names became longer, the comments move around in the generated code. So at the moment the 
-comments are simply removed from the generated code, which makes the code harder to understand.
+comments are simply removed from the generated code, which makes the code harder to read.
 
-An other open issue are special properties of the types: You can write a template which compares
-two values to check wich of them is larger. If you replace the template type by a struct you will
+An other open issue are the special properties of the types: You can write a template which compares
+two values to check whichever is greater. If you replace the template type by a struct you will
 get compile time errors because structs are not comparable in that way.
+
+---
+I have to apologise my poor english.

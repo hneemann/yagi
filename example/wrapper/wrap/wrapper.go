@@ -16,7 +16,7 @@ func (l *Wrapper) Add(item ITEM) {
 	l.delegate.Add(item)
 }
 
-// Get gets an element from the list
+// Get returns an element from the list
 func (l *Wrapper) Get(index int) ITEM {
 	item, ok := l.delegate.Get(index).(ITEM)
 	if ok {

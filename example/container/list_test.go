@@ -1,10 +1,10 @@
-package main
+package container
 
 import "fmt"
 
-//go:generate yagi -tem=./list/list.go -gen=int64;string -pkg=main
+//go:generate yagi -tem=./list/list.go -gen=int64;string
 
-func main() {
+func ExampleList() {
 	{
 		l := NewInt64()
 		e4 := l.PushBack(4)
@@ -29,4 +29,13 @@ func main() {
 			fmt.Println(e.Value)
 		}
 	}
+	// Output:
+	// 1
+	// 2
+	// 3
+	// 4
+	// 1
+	// 2
+	// 3
+	// 4
 }

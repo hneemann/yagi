@@ -1,10 +1,10 @@
-package main
+package wrapper
 
 import "fmt"
 
-//go:generate yagi -tem=./wrap/wrapper.go -gen=int64;string -pkg=main
+//go:generate yagi -tem=./wrap/wrapper.go -gen=int64;string
 
-func main() {
+func ExampleWrapper() {
 	{
 		m := WrapperInt64{}
 		m.Add(1)
@@ -17,4 +17,7 @@ func main() {
 		m.Add("2")
 		fmt.Println(m.Get(1))
 	}
+	// Output:
+	// 2
+	// 2
 }

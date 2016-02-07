@@ -1,10 +1,10 @@
-package main
+package mmap
 
 import "fmt"
 
-//go:generate yagi -tem=./temp/mmap.go -gen=string,int64;string,string -pkg=main
+//go:generate yagi -tem=./temp/mmap.go -gen=string,int64;string,string
 
-func main() {
+func ExampleMMap() {
 	{
 		m := NewStringInt64()
 		m.Put("first", 1)
@@ -17,4 +17,7 @@ func main() {
 		m.Put("second", "2")
 		fmt.Println(m.Get("first"))
 	}
+	// Output:
+	// 1
+	// 1
 }
