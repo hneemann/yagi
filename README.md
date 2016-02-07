@@ -35,22 +35,22 @@ Here are some of them and my understanding of how they work. I have to apologise
 them correctly:
 
 1. [gen](https://clipperhouse.github.io/gen/)
-   `gen` is a tool which helps you to generate code from a template. You have to implement this template in Go.
+   is a tool which helps you to generate code from a template. You have to implement this template in Go.
    To add a new template you have to implement the `TypeWriter`-interface. This interface has a method with takes
    a `io.Writer` and the information about the concrete type as an argument. 
    To this `io.Writer` you have to write the generated concrete code.
    So creating a template is expensive and the templates are hard to test.
 
 2. [genny](https://github.com/cheekybits/genny/)
-   `genny` is also a tool to handle templates. With `genny` a template is a simple go file. So it is very cheap 
+   is also a tool to handle templates. With `genny` a template is a simple go file. So it is very cheap 
    to create and maintain. This go file has no extension's which break the code. 
    So the template can be compiled and tested in a idiomatic way.
    But it uses a simple text based search and replace technique to create the concrete types. So the template author
-   has to take care about the names of the types and functions, in a way that the generated code is working as expected.
+   has to take care about the names of the types and functions, to get the generated code working as expected.
    At the end the code looks somewhat strange.
 
 3. [gonerics](http://bouk.co/blog/idiomatic-generics-in-go/)
-   `goneric` uses the go packages `go/parser` and `go/ast` to parse a go file. 
+   uses the go packages `go/parser` and `go/ast` to parse a go file. 
    The created ast is traversed and the generic types are renamed to the concrete types. 
    The templates are using simple names like 'T' or 'U' which a renamed by traversing the ast. 
    But the names of structs and functions are not touched. So if you want to generate code for more then one type
@@ -62,7 +62,7 @@ I found it a good idea not only to rename the types, but also the structs and th
 So I can generate various structs and methods and all the code can live in the same package or even in the same 
 file. So I implemented a generic rename tool which parses the ast, looks for the generic types, looks which structs 
 and functions are effected by this types and rename also the affected structs and functions in a propper way. Then 
-I can write the renamed ast to a file. And this can be done for every type I need and at the end I get a generated 
+the renamed ast is written to a file. And this can be done for every type I need and at the end I get a generated 
 file which contains all the neccesary declarations.
      
 ###Example
@@ -132,12 +132,13 @@ file which lives in the parent directory of our list:
 
     //go:generate yagi -tem=./temp/list.go -gen=int64;int32
 
-The `-gen` flag says that I need a list for the type `int64` and `int32`.
+The `-tem` flag points to the template, and 
+the `-gen` flag says that I want to generate a list for the types `int64` and `int32`.
 The package name of the generated file is set to the directory name of the generated 
 file, so in most cases it will be ok. If you need an other name you can set it by `-pac=main`.
 Before a file is written, it is checked if it already exists. If it exists, it is checked whether 
-it was created by yagi. If not you will get an error. 
-So you can not overwrite a manualy created file by a mistake.
+it was created by yagi. If not, you will get an error. 
+So you can not overwrite a manualy created file by mistake.
 
 Running `go generate` from the command line we get:
  
