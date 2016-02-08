@@ -11,7 +11,7 @@ import (
 	"strings"
 
 	"github.com/hneemann/yagi/concrete"
-	"github.com/hneemann/yagi/generify/intset"
+	"github.com/hneemann/yagi/generify/set"
 )
 
 var newline = []byte("\n\n")
@@ -25,7 +25,7 @@ func checkNodeIsOffType(n ast.Node, kind ast.ObjKind) (*ast.Ident, bool) {
 
 type declWithDependency struct {
 	decl             ast.Decl
-	usedTypes        intset.IntSet
+	usedTypes        set.SetInt
 	writtenInstances []concrete.Types
 }
 
@@ -241,11 +241,11 @@ func splitDeclsToUngroupedDecls(decls []ast.Decl) []ast.Decl {
 
 type simpleVisitor struct {
 	g          *Generify
-	foundTypes intset.IntSet
+	foundTypes set.SetInt
 }
 
 func newSimpleVisitor(g *Generify) *simpleVisitor {
-	return &simpleVisitor{g, make(intset.IntSet)}
+	return &simpleVisitor{g, make(set.SetInt)}
 }
 
 type simpleRename struct {
@@ -280,7 +280,7 @@ func (g *Generify) inspectAllDeclsForDependencies(decls []ast.Decl) []*declWithD
 }
 
 // add more dependencies to the given struct
-func (g *Generify) structDependsOn(structName string, types intset.IntSet) {
+func (g *Generify) structDependsOn(structName string, types set.SetInt) {
 	for _, decl := range g.genericDecls {
 		if genDecl, ok := decl.decl.(*ast.GenDecl); ok {
 			spec := genDecl.Specs[0]
@@ -323,7 +323,7 @@ type renameVisitor struct {
 	g           *Generify
 	kind        ast.ObjKind
 	origName    string
-	usedIndices intset.IntSet
+	usedIndices set.SetInt
 	wasActive   bool
 }
 
@@ -347,7 +347,7 @@ func (rv *renameVisitor) finalize(d *declWithDependency) {
 type multiRename struct {
 	origName    string
 	ident       *ast.Ident
-	usedIndices intset.IntSet
+	usedIndices set.SetInt
 }
 
 func (mr multiRename) rename(ct concrete.Types) {

@@ -56,6 +56,10 @@ them correctly:
    But the names of structs and functions are not touched. So if you want to generate code for more then one type
    the code has to live in different packages.
 
+4. [goast](https://github.com/go-goast/goast/)
+   uses a similar approach to adress the generics problem. So if you like `yagi` you should also take a look to
+   [goast](https://github.com/go-goast/goast/)
+
 ###The Idea
 
 I found it a good idea not only to rename the types, but also the structs and the functions which use this types if neccesary.
@@ -403,6 +407,9 @@ func (l *Wrapper) Len() int {
 	return l.delegate.Len()
 }
 ```
+The generation of wrappers is somewhat tricky because the type `Wrapper` does
+not depend on a generic type. There are only some methods witch have `Wrapper` 
+as an receiver which depend on the generic type.
 
 Now you can generate type save wrappers for `largecode.List` and use the
 type save wrappers instead of `largecode.List` itself:
@@ -429,6 +436,7 @@ func ExampleWrapper() {
 	}
 }
 ```
+
 Again the methods `Add` and `Get` are typed now.
 You can find the generated code [here](https://github.com/hneemann/yagi/blob/master/example/wrapper/wrapper.go).
   
