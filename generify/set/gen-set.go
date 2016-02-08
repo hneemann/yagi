@@ -3,19 +3,20 @@
 
 package set
 
+import "bytes"
 import "fmt"
 
 type SetInt map[int]struct{}
 
 func (i SetInt) String() string {
-	n := ""
+	var buffer bytes.Buffer
 	for i := range i {
-		if len(n) > 0 {
-			n += " "
+		if buffer.Len() > 0 {
+			buffer.WriteString(" ")
 		}
-		n += fmt.Sprintf("%v", i)
+		buffer.WriteString(fmt.Sprint(i))
 	}
-	return n
+	return buffer.String()
 }
 
 func (i *SetInt) Add(a int) {

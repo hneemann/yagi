@@ -1,6 +1,9 @@
 package set
 
-import "fmt"
+import (
+	"bytes"
+	"fmt"
+)
 
 //go:generate yagi -tem=set.go -gen=int
 
@@ -10,15 +13,16 @@ type ITEM interface{}
 // Set represents a simple set
 type Set map[ITEM]struct{}
 
+// String satisfies the fmt.Stringer interface
 func (i Set) String() string {
-	n := ""
+	var buffer bytes.Buffer
 	for i := range i {
-		if len(n) > 0 {
-			n += " "
+		if buffer.Len() > 0 {
+			buffer.WriteString(" ")
 		}
-		n += fmt.Sprintf("%v", i)
+		buffer.WriteString(fmt.Sprint(i))
 	}
-	return n
+	return buffer.String()
 }
 
 // Add adds a item to the set
@@ -39,7 +43,7 @@ func (i Set) Has(a ITEM) bool {
 	return ok
 }
 
-// Has checks if this set contains the item
+// Items returns the set items as a slice
 func (i Set) Items() (res []ITEM) {
 	for item := range i {
 		res = append(res, item)

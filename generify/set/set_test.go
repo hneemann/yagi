@@ -36,3 +36,12 @@ func TestItems(t *testing.T) {
 	assert.True(t, (items[0] == 1 && items[1] == 2) ||
 		(items[0] == 2 && items[1] == 1))
 }
+
+func TestString(t *testing.T) {
+	s := Set{}
+	s.Add(1)
+	s.Add(2)
+
+	str := s.String()
+	assert.True(t, str == "1 2" || str == "2 1")
+}
