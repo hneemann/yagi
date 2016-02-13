@@ -57,7 +57,7 @@ them correctly:
    the code has to live in different packages.
 
 4. [goast](https://github.com/go-goast/goast/)
-   uses a similar approach to adress the generics problem. So if you like `yagi` you should also take a look to
+   uses a similar approach to adress the generics problem. So if you like `yagi` you should also take a look at
    [goast](https://github.com/go-goast/goast/)
 
 ###The Idea
