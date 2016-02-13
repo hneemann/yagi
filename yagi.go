@@ -1,4 +1,9 @@
-// This package holds the command line tool yagi
+// This package holds the command line tool yagi.
+// yagi (yet another generics implementation) can be used
+// to generate code based on an idomatic, compilable and
+// testable Go template.
+// It reads this template code, modifies types and names, and
+// writes a new concrete implementation of that template.
 package main
 
 import (
