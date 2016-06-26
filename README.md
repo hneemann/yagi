@@ -455,5 +455,3 @@ Other open issues are the special properties of the types: You can write a templ
 two values to check whichever is greater. If you replace the template type by a struct you will
 get compile time errors because structs are not comparable in that way.
 
----
-I have to apologise my poor english.
