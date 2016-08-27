@@ -4,7 +4,7 @@ This is a tool to add a simple template functionality to the Go language.
 
 ###Motivation
 
-I am an experienced programmer with a 10+ years Java background and I use Go as my "first" language since about 
+I am an experienced programmer with a 10+ years Java background and I use Go since about 
 three years now. One of the Java features I used a lot are the generics available in Java. 
 But the Java generics are complex and hard to understand. And they seem to overgrow: If you 
 start to use them you get compiler warning very quickly. And to fix them you have to add generics to more and more 
@@ -21,12 +21,22 @@ deal with such a situation without the usage of generics? Copy and Paste is not 
 hard to maintain. Using the empty interface and throwing away all the compilers type checking is also not a good idea.
 Or you can rewrite the code with the empty interface and implement a wrapper for each type which does all the 
 boxing and unboxing from and to the empty interface. Also an error prone work.
+ 
+Thinking about generics in a language like Go I came to the conclusion that there are only two possible solutions: 
+The C++ template approach: Copy the code for each type (and let the linker remove identical copies) or the Java 
+boxing and unboxing approach.    
+
+But keep in mind: Which approach is best to use is not a decision you can make in general for a language. It is a 
+decision you have to make depending on the concrete problem you have to solve.
   
-What I would like to do is to keep my code nearly unchanged and generate implementations for other types based 
-on the existing code. 
-If this file is generated I can inspect it in detail if something goes wrong. If there is no other 
+So maybe it is sometimes better to replicate the code because it is a small amount, and sometimes its better to
+do all the boxing and unboxing to avoid the code bloat.
+  
+So what I would like to do is to keep my code nearly unchanged and generate implementations for other types based 
+on the existing code, in a way depending on the problem I have to solve. 
+If such a file is generated I can inspect it in detail if something goes wrong. If there is no other 
 way I can also modify the file to fix a problem. This is not a good idea: The code is hard to maintain in the future! 
-But it is possible if neccesary. 
+But it is possible if necessary. 
 
 ###Former work
 
@@ -361,8 +371,8 @@ You can find the generated code [here](https://github.com/hneemann/yagi/blob/mas
 
 ## Create Wrappers
 
-If you don't like the code bloat that comes with the generation of such complete 
-typed copys of the original code you can also create a template implementation of a 
+If you want to avoid the code bloat that comes with the generation of such complete 
+typed copies of the original code you can also create a template implementation of a 
 wrapper for the original type. Then you only have to create typed wrappers. 
 Imagine you have written a very complex implementation of a list which consists of a large amount of code.
 This list (`largecode.List`) uses the empty interface to store the list items.
