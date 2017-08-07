@@ -1,8 +1,8 @@
-##Generics for Go [![Build Status](https://travis-ci.org/hneemann/yagi.svg?branch=master)](https://travis-ci.org/hneemann/yagi)
+## Generics for Go [![Build Status](https://travis-ci.org/hneemann/yagi.svg?branch=master)](https://travis-ci.org/hneemann/yagi)
 
 This is a tool to add a simple template functionality to the Go language.
 
-###Motivation
+### Motivation
 
 I am an experienced programmer with a 10+ years Java background and I use Go since about 
 three years now. One of the Java features I used a lot are the generics available in Java. 
@@ -38,7 +38,7 @@ If such a file is generated I can inspect it in detail if something goes wrong. 
 way I can also modify the file to fix a problem. This is not a good idea: The code is hard to maintain in the future! 
 But it is possible if necessary. 
 
-###Former work
+### Former work
 
 There are a lot of different implementations out there and all of them are usable and are working.
 Here are some of them and my understanding of how they work. I have to apologise if I did not understand 
@@ -70,7 +70,7 @@ them correctly:
    uses a similar approach to adress the generics problem. So if you like `yagi` you should also take a look at
    [goast](https://github.com/go-goast/goast/)
 
-###The Idea
+### The Idea
 
 I found it a good idea not only to rename the types, but also the structs and the functions which use this types if neccesary.
 So I can generate various structs and methods and all the code can live in the same package or even in the same 
@@ -79,7 +79,7 @@ and functions are effected by this types and rename also the affected structs an
 the renamed ast is written to a file. And this can be done for every type I need and at the end I get a generated 
 file which contains all the neccesary declarations.
      
-###Example
+### Example
 
 Let us start with a simple list:
 
